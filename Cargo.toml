@@ -1,0 +1,10 @@
+[package]
+name = "bevy_rider"
+version = "0.1.0"
+authors = ["Duncan <bonsairobo@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+bevy = "0.1"
+bevy_rapier2d = "0.1"
+itertools = "0.9"

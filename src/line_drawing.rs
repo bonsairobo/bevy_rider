@@ -1,3 +1,5 @@
+use crate::screen_to_world::screen_to_world;
+
 use bevy::prelude::*;
 use bevy_rapier2d::rapier::{dynamics::RigidBodyBuilder, geometry::ColliderBuilder};
 use itertools::Itertools;
@@ -71,7 +73,7 @@ pub fn line_drawing_system(
 
     if mouse_button_input.pressed(MouseButton::Left) {
         for event in state.cursor_event_reader.iter(&cursor_moved_events) {
-            state.cursor_curve.push_front(window_to_world(
+            state.cursor_curve.push_front(screen_to_world(
                 event.position,
                 &camera_transform,
                 &windows,
@@ -85,15 +87,6 @@ pub fn line_drawing_system(
     for (p1, p2) in new_line_segments.into_iter() {
         spawn_line_segment(p1, p2, line_material.0, &mut commands);
     }
-}
-
-fn window_to_world(p: Vec2, camera_transform: &Transform, windows: &Windows) -> Vec2 {
-    let w = windows.get_primary().unwrap();
-    let resolution = Vec2::new(w.width as f32, w.height as f32);
-    let p_ndc = p - resolution / 2.0;
-    let p_world = camera_transform.value * p_ndc.extend(0.0).extend(1.0);
-
-    p_world.truncate().truncate()
 }
 
 const LINE_THICKNESS: f32 = 3.0;

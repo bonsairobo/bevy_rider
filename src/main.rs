@@ -1,9 +1,10 @@
 mod camera_dragging;
 mod camera_zooming;
 mod line_drawing;
+mod screen_to_world;
 mod sled_spawner;
 
-use camera_dragging::camera_dragging_system;
+use camera_dragging::{camera_dragging_system, CameraDraggingState};
 use camera_zooming::camera_zooming_system;
 use line_drawing::{line_drawing_system, LineDrawingState, LineMaterial};
 use sled_spawner::{sled_spawner_system, SledMaterial};
@@ -42,6 +43,7 @@ fn setup(mut commands: Commands, mut materials: ResMut<Assets<ColorMaterial>>) {
         .current_entity()
         .unwrap();
     commands.insert_resource(LineDrawingState::new(camera_entity));
+    commands.insert_resource(CameraDraggingState::new(camera_entity));
 
     commands.insert_resource(SledMaterial(
         materials.add(Color::rgb(1.0, 0.0, 0.0).into()),

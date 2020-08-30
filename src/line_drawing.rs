@@ -12,7 +12,7 @@ pub struct LineDrawingState {
     cursor_curve: VecDeque<Vec2>,
 }
 
-const SEGMENT_LENGTH: f32 = 20.0;
+const SEGMENT_LENGTH: f32 = 15.0;
 
 impl LineDrawingState {
     fn pop_line_segments(&mut self) -> Vec<(Vec2, Vec2)> {
@@ -116,5 +116,5 @@ fn spawn_line_segment(
                 .translation(x, y)
                 .rotation(angle),
         )
-        .with(ColliderBuilder::cuboid(length / 2.0, LINE_THICKNESS / 2.0).friction(0.0));
+        .with(ColliderBuilder::capsule_x(length / 2.0, LINE_THICKNESS / 2.0).friction(0.0));
 }

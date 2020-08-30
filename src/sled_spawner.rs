@@ -23,6 +23,8 @@ fn spawn_sled(size: Vec2, material: Handle<ColorMaterial>, commands: &mut Comman
         .spawn(SpriteComponents {
             material,
             sprite: Sprite { size },
+            // HACK: this should be unnecessary, but bevy_rapier has an awkward system ordering that
+            // means we have at least one frame before transforms get synchronized
             translation: Translation(Vec3::new(x, y, 0.0)),
             ..Default::default()
         })

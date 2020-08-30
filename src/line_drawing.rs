@@ -107,6 +107,8 @@ fn spawn_line_segment(
             sprite: Sprite {
                 size: Vec2::new(length, LINE_THICKNESS),
             },
+            // HACK: this should be unnecessary, but bevy_rapier has an awkward system ordering that
+            // means we have at least one frame before transforms get synchronized
             translation: Translation(Vec3::new(x, y, 0.0)),
             rotation: Rotation::from_rotation_z(angle),
             ..Default::default()

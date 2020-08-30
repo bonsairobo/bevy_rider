@@ -1,6 +1,6 @@
 # Bevy Rider
 
-Line Rider implemented with the Bevy game engine.
+Line Rider implemented with the Bevy game engine and Rapier 2D.
 
 # Controls
 

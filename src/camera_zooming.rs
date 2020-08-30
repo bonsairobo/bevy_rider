@@ -7,8 +7,6 @@ pub struct CameraZoomingState {
 
 const ZOOM_SENSITIVITY: f32 = 0.1;
 
-// BUG: for some reason, when camera scale < 1.0, things just disappear!
-
 pub fn camera_zooming_system(
     mut state: Local<CameraZoomingState>,
     mouse_wheel: Res<Events<MouseWheel>>,
@@ -20,6 +18,7 @@ pub fn camera_zooming_system(
     }
 
     for (_, mut scale) in &mut query.iter() {
-        *scale = Scale(scale.0 * zoom_scalar);
+        // BUG: for some reason, when camera scale < 1.0, things just disappear!
+        *scale = Scale((scale.0 * zoom_scalar).max(1.0));
     }
 }

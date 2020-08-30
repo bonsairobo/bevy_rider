@@ -105,9 +105,6 @@ fn spawn_line_segment(
             sprite: Sprite {
                 size: Vec2::new(length, LINE_THICKNESS),
             },
-            // TODO: I think these shouldn't be necessary if Rapier is updating the transform
-            translation: Translation(Vec3::new(midpoint.x(), midpoint.y(), 0.0)),
-            rotation: Rotation::from_rotation_xyz(0.0, 0.0, angle),
             ..Default::default()
         })
         .with(

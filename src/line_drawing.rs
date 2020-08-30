@@ -1,6 +1,7 @@
 use crate::screen_to_world::screen_to_world;
 
 use bevy::prelude::*;
+use bevy_rapier2d::na;
 use bevy_rapier2d::rapier::{dynamics::RigidBodyBuilder, geometry::ColliderBuilder};
 use itertools::Itertools;
 use std::collections::VecDeque;
@@ -104,10 +105,8 @@ fn spawn_line_segment(
     let x = midpoint.x();
     let y = midpoint.y();
 
-    // println!(
-    //     "Spawning mid = {}, diff = {}, len = {}, angle = {}",
-    //     midpoint, diff, length, angle
-    // );
+    let local_p1 = na::Point2::new(-length / 2.0, 0.0);
+    let local_p2 = na::Point2::new(length / 2.0, 0.0);
 
     commands
         .spawn(SpriteComponents {
@@ -126,5 +125,5 @@ fn spawn_line_segment(
                 .translation(x, y)
                 .rotation(angle),
         )
-        .with(ColliderBuilder::capsule_x(length / 2.0, LINE_THICKNESS / 2.0).friction(0.0));
+        .with(ColliderBuilder::segment(local_p1, local_p2).friction(0.0));
 }

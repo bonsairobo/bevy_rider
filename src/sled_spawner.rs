@@ -29,5 +29,5 @@ fn spawn_sled(size: Vec2, material: Handle<ColorMaterial>, commands: &mut Comman
             ..Default::default()
         })
         .with(RigidBodyBuilder::new_dynamic().translation(x, y))
-        .with(ColliderBuilder::cuboid(size.x() / 2.0, size.y() / 2.0).friction(0.0));
+        .with(ColliderBuilder::capsule_x(size.x() / 2.0, size.y() / 2.0).friction(0.0));
 }

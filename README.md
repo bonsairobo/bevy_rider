@@ -7,3 +7,4 @@ Line Rider implemented with the Bevy game engine.
 - Left mouse to draw lines
 - Right mouse to drag the camera
 - Scroll wheel to zoom in and out
+- Spacebar to spawn a sled

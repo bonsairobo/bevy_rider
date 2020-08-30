@@ -27,6 +27,8 @@ fn main() {
         .add_resource(Gravity(Vector::y() * -300.0))
         .add_resource(ClearColor(Color::rgb(0.7, 0.7, 0.7)))
         .add_startup_system(setup.system())
+        // HACK: for a reason I don't understand, the physics objects must be spawned in FIRST
+        // stage, otherwise they might be invisible
         .add_system_to_stage(stage::FIRST, sled_spawner_system.system())
         .add_system_to_stage(stage::FIRST, line_drawing_system.system())
         .add_system(camera_dragging_system.system())

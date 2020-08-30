@@ -23,8 +23,8 @@ fn main() {
         .add_plugin(RapierPhysicsPlugin)
         .add_resource(ClearColor(Color::rgb(0.7, 0.7, 0.7)))
         .add_startup_system(setup.system())
-        .add_system(sled_spawner_system.system())
-        .add_system(line_drawing_system.system())
+        .add_system_to_stage(stage::FIRST, sled_spawner_system.system())
+        .add_system_to_stage(stage::FIRST, line_drawing_system.system())
         .add_system(camera_dragging_system.system())
         .add_system(camera_zooming_system.system())
         .run();

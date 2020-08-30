@@ -93,6 +93,8 @@ fn spawn_line_segment(
     let diff = p2 - p1;
     let length = diff.length();
     let angle = Vec2::new(1.0, 0.0).angle_between(diff);
+    let x = midpoint.x();
+    let y = midpoint.y();
 
     // println!(
     //     "Spawning mid = {}, diff = {}, len = {}, angle = {}",
@@ -105,11 +107,13 @@ fn spawn_line_segment(
             sprite: Sprite {
                 size: Vec2::new(length, LINE_THICKNESS),
             },
+            translation: Translation(Vec3::new(x, y, 0.0)),
+            rotation: Rotation::from_rotation_z(angle),
             ..Default::default()
         })
         .with(
             RigidBodyBuilder::new_static()
-                .translation(midpoint.x(), midpoint.y())
+                .translation(x, y)
                 .rotation(angle),
         )
         .with(ColliderBuilder::cuboid(length / 2.0, LINE_THICKNESS / 2.0).friction(0.0));

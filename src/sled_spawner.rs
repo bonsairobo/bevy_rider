@@ -16,12 +16,16 @@ pub fn sled_spawner_system(
 }
 
 fn spawn_sled(size: Vec2, material: Handle<ColorMaterial>, commands: &mut Commands) {
+    let x = -200.0;
+    let y = 200.0;
+
     commands
         .spawn(SpriteComponents {
             material,
             sprite: Sprite { size },
+            translation: Translation(Vec3::new(x, y, 0.0)),
             ..Default::default()
         })
-        .with(RigidBodyBuilder::new_dynamic().translation(-200.0, 200.0))
+        .with(RigidBodyBuilder::new_dynamic().translation(x, y))
         .with(ColliderBuilder::cuboid(size.x() / 2.0, size.y() / 2.0).friction(0.0));
 }

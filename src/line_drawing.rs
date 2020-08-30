@@ -6,15 +6,23 @@ use std::collections::VecDeque;
 #[derive(Default)]
 pub struct LineMaterial(pub Handle<ColorMaterial>);
 
-#[derive(Default)]
 pub struct LineDrawingState {
     cursor_event_reader: EventReader<CursorMoved>,
     cursor_curve: VecDeque<Vec2>,
+    camera_entity: Entity,
 }
 
 const SEGMENT_LENGTH: f32 = 15.0;
 
 impl LineDrawingState {
+    pub fn new(camera_entity: Entity) -> Self {
+        LineDrawingState {
+            cursor_event_reader: Default::default(),
+            cursor_curve: Default::default(),
+            camera_entity,
+        }
+    }
+
     fn pop_line_segments(&mut self) -> Vec<(Vec2, Vec2)> {
         // Downsample the cursor curve by length.
         let mut line_segments = Vec::new();
@@ -52,17 +60,22 @@ impl LineDrawingState {
 
 pub fn line_drawing_system(
     mut commands: Commands,
-    mut state: Local<LineDrawingState>,
+    mut state: ResMut<LineDrawingState>,
     line_material: Res<LineMaterial>,
     cursor_moved_events: Res<Events<CursorMoved>>,
     mouse_button_input: Res<Input<MouseButton>>,
     windows: Res<Windows>,
+    transforms: Query<&Transform>,
 ) {
+    let camera_transform = transforms.get::<Transform>(state.camera_entity).unwrap();
+
     if mouse_button_input.pressed(MouseButton::Left) {
         for event in state.cursor_event_reader.iter(&cursor_moved_events) {
-            state
-                .cursor_curve
-                .push_front(window_to_world(event.position, &windows));
+            state.cursor_curve.push_front(window_to_world(
+                event.position,
+                &camera_transform,
+                &windows,
+            ));
         }
     } else {
         state.cursor_curve.clear();
@@ -74,11 +87,13 @@ pub fn line_drawing_system(
     }
 }
 
-fn window_to_world(p: Vec2, windows: &Windows) -> Vec2 {
+fn window_to_world(p: Vec2, camera_transform: &Transform, windows: &Windows) -> Vec2 {
     let w = windows.get_primary().unwrap();
     let resolution = Vec2::new(w.width as f32, w.height as f32);
+    let p_ndc = p - resolution / 2.0;
+    let p_world = camera_transform.value * p_ndc.extend(0.0).extend(1.0);
 
-    p - resolution / 2.0
+    p_world.truncate().truncate()
 }
 
 const LINE_THICKNESS: f32 = 3.0;

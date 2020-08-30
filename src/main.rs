@@ -9,7 +9,10 @@ use line_drawing::{line_drawing_system, LineMaterial};
 use sled_spawner::{sled_spawner_system, SledMaterial};
 
 use bevy::{prelude::*, render::pass::ClearColor};
-use bevy_rapier2d::physics::RapierPhysicsPlugin;
+use bevy_rapier2d::{
+    na::Vector,
+    physics::{Gravity, RapierPhysicsPlugin},
+};
 
 /// An implementation of the classic game "Line Rider"
 fn main() {
@@ -21,6 +24,7 @@ fn main() {
         .add_resource(window_desc)
         .add_default_plugins()
         .add_plugin(RapierPhysicsPlugin)
+        .add_resource(Gravity(Vector::y() * -300.0))
         .add_resource(ClearColor(Color::rgb(0.7, 0.7, 0.7)))
         .add_startup_system(setup.system())
         .add_system_to_stage(stage::FIRST, sled_spawner_system.system())

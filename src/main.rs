@@ -7,7 +7,7 @@ mod sled_spawner;
 use camera_dragging::{camera_dragging_system, CameraDraggingState};
 use camera_zooming::camera_zooming_system;
 use line_drawing::{line_drawing_system, LineDrawingState, LineMaterial};
-use sled_spawner::{sled_spawner_system, SledMaterial};
+use sled_spawner::{sled_spawner_system, SledMaterial, SledSpawnerState};
 
 use bevy::{prelude::*, render::pass::ClearColor};
 use bevy_rapier2d::{
@@ -25,6 +25,8 @@ fn main() {
         .add_resource(window_desc)
         .add_default_plugins()
         .add_plugin(RapierPhysicsPlugin)
+        // TODO: apparently I shouldn't just scale the gravity to compensate for using pixel
+        // coordinates, as it can cause inaccuracies in the physics simulation
         .add_resource(Gravity(Vector::y() * -300.0))
         .add_resource(ClearColor(Color::rgb(0.7, 0.7, 0.7)))
         .add_startup_system(setup.system())
@@ -42,8 +44,9 @@ fn setup(mut commands: Commands, mut materials: ResMut<Assets<ColorMaterial>>) {
         .spawn(Camera2dComponents::default())
         .current_entity()
         .unwrap();
-    commands.insert_resource(LineDrawingState::new(camera_entity));
     commands.insert_resource(CameraDraggingState::new(camera_entity));
+    commands.insert_resource(LineDrawingState::new(camera_entity));
+    commands.insert_resource(SledSpawnerState::new(camera_entity));
 
     commands.insert_resource(SledMaterial(
         materials.add(Color::rgb(1.0, 0.0, 0.0).into()),

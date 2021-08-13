@@ -118,13 +118,6 @@ fn spawn_line_segment(
                 flip_y: false,
                 resize_mode: SpriteResizeMode::Manual,
             },
-            // HACK: this should be unnecessary, but bevy_rapier has an awkward system ordering that
-            // means we have at least one frame before transforms get synchronized
-            transform: Transform {
-                translation: Vec3::new(x, y, 0.0),
-                rotation: Quat::from_axis_angle(Vec3::new(1.0, 1.0, 1.0), angle),
-                ..Default::default()
-            },
             ..Default::default()
         })
         .insert_bundle(RigidBodyBundle {
@@ -132,6 +125,7 @@ fn spawn_line_segment(
             position: (Vec2::new(x, y), angle).into(),
             ..Default::default()
         })
+        .insert(RigidBodyPositionSync::Discrete)
         .insert_bundle(ColliderBundle {
             shape: SharedShape::new(Capsule::new(local_p1, local_p2, 0.0)),
             material: ColliderMaterial {

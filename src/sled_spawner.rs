@@ -50,9 +50,7 @@ fn spawn_sled(position: Vec2, size: Vec2, material: Handle<ColorMaterial>, mut c
             material,
             sprite: Sprite {
                 size,
-                flip_x: false,
-                flip_y: false,
-                resize_mode: SpriteResizeMode::Manual,
+                ..Default::default()
             },
             ..Default::default()
         })
@@ -60,6 +58,10 @@ fn spawn_sled(position: Vec2, size: Vec2, material: Handle<ColorMaterial>, mut c
             position: position.into(),
             forces: RigidBodyForces {
                 gravity_scale: 50.0,
+                ..Default::default()
+            },
+            ccd: RigidBodyCcd {
+                ccd_enabled: true,
                 ..Default::default()
             },
             ..Default::default()

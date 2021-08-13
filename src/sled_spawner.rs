@@ -32,7 +32,8 @@ pub fn sled_spawner_system(
     let camera_transform = transforms.get(state.camera_entity).unwrap();
 
     state.last_cursor_pos = cursor_event_reader
-        .iter().nth(0)
+        .iter()
+        .nth(0)
         .map(|event| screen_to_world(event.position, &camera_transform, &windows))
         .or(state.last_cursor_pos);
     if let Some(cursor_pos) = state.last_cursor_pos {
@@ -43,12 +44,7 @@ pub fn sled_spawner_system(
     }
 }
 
-fn spawn_sled(
-    position: Vec2,
-    size: Vec2,
-    material: Handle<ColorMaterial>,
-    mut commands: Commands,
-) {
+fn spawn_sled(position: Vec2, size: Vec2, material: Handle<ColorMaterial>, mut commands: Commands) {
     commands
         .spawn_bundle(SpriteBundle {
             material,
@@ -58,19 +54,17 @@ fn spawn_sled(
                 flip_y: false,
                 resize_mode: SpriteResizeMode::Manual,
             },
-            // HACK: this should be unnecessary, but bevy_rapier has an awkward system ordering that
-            // means we have at least one frame before transforms get synchronized
-            transform: Transform {
-                rotation: Quat::IDENTITY,
-                scale: Vec3::new(1.0, 1.0, 1.0),
-                translation: position.extend(0.0),
-            },
             ..Default::default()
         })
         .insert_bundle(RigidBodyBundle {
             position: position.into(),
+            forces: RigidBodyForces {
+                gravity_scale: 50.0,
+                ..Default::default()
+            },
             ..Default::default()
         })
+        .insert(RigidBodyPositionSync::Discrete)
         .insert_bundle(ColliderBundle {
             shape: SharedShape::new(Capsule::new_x(size.x / 2.0, size.y / 2.0)),
             material: ColliderMaterial::new(0.0, 0.0),

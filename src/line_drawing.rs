@@ -1,7 +1,11 @@
 use crate::screen_to_world::screen_to_world;
 
 use bevy::prelude::*;
-use bevy_rapier2d::{prelude::*, na, physics::{ColliderBundle, RigidBodyBundle}};
+use bevy_rapier2d::{
+    na,
+    physics::{ColliderBundle, RigidBodyBundle},
+    prelude::*,
+};
 use itertools::Itertools;
 use std::collections::VecDeque;
 
@@ -118,26 +122,22 @@ fn spawn_line_segment(
             // means we have at least one frame before transforms get synchronized
             transform: Transform {
                 translation: Vec3::new(x, y, 0.0),
-                rotation: Quat::from_axis_angle(Vec3::new(1.0,1.0,1.0), angle),
+                rotation: Quat::from_axis_angle(Vec3::new(1.0, 1.0, 1.0), angle),
                 ..Default::default()
             },
             ..Default::default()
         })
-        .insert_bundle(
-            RigidBodyBundle {
-                body_type: RigidBodyType::Static,
-                position: (Vec2::new(x, y), angle).into(),
+        .insert_bundle(RigidBodyBundle {
+            body_type: RigidBodyType::Static,
+            position: (Vec2::new(x, y), angle).into(),
+            ..Default::default()
+        })
+        .insert_bundle(ColliderBundle {
+            shape: SharedShape::new(Capsule::new(local_p1, local_p2, 0.0)),
+            material: ColliderMaterial {
+                friction: 0.0,
                 ..Default::default()
-            }
-        )
-        .insert_bundle(
-            ColliderBundle {
-                shape: SharedShape::new(Capsule::new(local_p1, local_p2, 0.0)),
-                material: ColliderMaterial {
-                    friction: 0.0,
-                    ..Default::default()
-                },
-                ..Default::default()
-            }
-        );
+            },
+            ..Default::default()
+        });
 }

@@ -10,7 +10,7 @@ use line_drawing::{line_drawing_system, LineDrawingState, LineMaterial};
 use sled_spawner::{sled_spawner_system, SledMaterial, SledSpawnerState};
 
 use bevy::{prelude::*, render::pass::ClearColor};
-use bevy_rapier2d::{na::Vector, physics::{NoUserData, RapierConfiguration, RapierPhysicsPlugin}};
+use bevy_rapier2d::physics::{NoUserData, RapierPhysicsPlugin};
 
 /// An implementation of the classic game "Line Rider"
 fn main() {
@@ -23,12 +23,6 @@ fn main() {
         .insert_resource(window_desc)
         .add_plugins(DefaultPlugins)
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
-        // TODO: apparently I shouldn't just scale the gravity to compensate for using pixel
-        // coordinates, as it can cause inaccuracies in the physics simulation
-        .insert_resource(RapierConfiguration {
-            gravity: Vector::y() * -300.0,
-            ..Default::default()
-        })
         .insert_resource(ClearColor(Color::rgb(0.7, 0.7, 0.7)))
         .add_startup_system(setup.system())
         .add_system(sled_spawner_system.system())

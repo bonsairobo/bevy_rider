@@ -114,9 +114,7 @@ fn spawn_line_segment(
             material,
             sprite: Sprite {
                 size: Vec2::new(length, LINE_THICKNESS),
-                flip_x: false,
-                flip_y: false,
-                resize_mode: SpriteResizeMode::Manual,
+                ..Default::default()
             },
             ..Default::default()
         })

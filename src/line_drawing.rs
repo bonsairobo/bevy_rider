@@ -1,8 +1,7 @@
 use crate::screen_to_world::screen_to_world;
 
 use bevy::prelude::*;
-use bevy_rapier2d::na;
-use bevy_rapier2d::rapier::{dynamics::RigidBodyBuilder, geometry::ColliderBuilder};
+use bevy_rapier2d::{prelude::*, na, physics::{ColliderBundle, RigidBodyBundle}};
 use itertools::Itertools;
 use std::collections::VecDeque;
 
@@ -10,7 +9,6 @@ use std::collections::VecDeque;
 pub struct LineMaterial(pub Handle<ColorMaterial>);
 
 pub struct LineDrawingState {
-    cursor_event_reader: EventReader<CursorMoved>,
     cursor_curve: VecDeque<Vec2>,
     camera_entity: Entity,
 }
@@ -20,7 +18,6 @@ const SEGMENT_LENGTH: f32 = 15.0;
 impl LineDrawingState {
     pub fn new(camera_entity: Entity) -> Self {
         LineDrawingState {
-            cursor_event_reader: Default::default(),
             cursor_curve: Default::default(),
             camera_entity,
         }
@@ -64,16 +61,16 @@ impl LineDrawingState {
 pub fn line_drawing_system(
     mut commands: Commands,
     mut state: ResMut<LineDrawingState>,
+    mut cursor_event_reader: EventReader<CursorMoved>,
     line_material: Res<LineMaterial>,
-    cursor_moved_events: Res<Events<CursorMoved>>,
     mouse_button_input: Res<Input<MouseButton>>,
     windows: Res<Windows>,
     transforms: Query<&Transform>,
 ) {
-    let camera_transform = transforms.get::<Transform>(state.camera_entity).unwrap();
+    let camera_transform = transforms.get(state.camera_entity).unwrap();
 
     if mouse_button_input.pressed(MouseButton::Left) {
-        for event in state.cursor_event_reader.iter(&cursor_moved_events) {
+        for event in cursor_event_reader.iter() {
             state.cursor_curve.push_front(screen_to_world(
                 event.position,
                 &camera_transform,
@@ -86,7 +83,7 @@ pub fn line_drawing_system(
 
     let new_line_segments = state.pop_line_segments();
     for (p1, p2) in new_line_segments.into_iter() {
-        spawn_line_segment(p1, p2, line_material.0, &mut commands);
+        spawn_line_segment(p1, p2, line_material.0.clone(), &mut commands);
     }
 }
 
@@ -102,28 +99,45 @@ fn spawn_line_segment(
     let diff = p2 - p1;
     let length = diff.length();
     let angle = Vec2::new(1.0, 0.0).angle_between(diff);
-    let x = midpoint.x();
-    let y = midpoint.y();
+    let x = midpoint.x;
+    let y = midpoint.y;
 
-    let local_p1 = na::Point2::new(-length / 2.0, 0.0);
-    let local_p2 = na::Point2::new(length / 2.0, 0.0);
+    let local_p1 = na::Point2::new(-length / 2.0, 0.0f32);
+    let local_p2 = na::Point2::new(length / 2.0, 0.0f32);
 
     commands
-        .spawn(SpriteComponents {
+        .spawn_bundle(SpriteBundle {
             material,
             sprite: Sprite {
                 size: Vec2::new(length, LINE_THICKNESS),
+                flip_x: false,
+                flip_y: false,
+                resize_mode: SpriteResizeMode::Manual,
             },
             // HACK: this should be unnecessary, but bevy_rapier has an awkward system ordering that
             // means we have at least one frame before transforms get synchronized
-            translation: Translation(Vec3::new(x, y, 0.0)),
-            rotation: Rotation::from_rotation_z(angle),
+            transform: Transform {
+                translation: Vec3::new(x, y, 0.0),
+                rotation: Quat::from_axis_angle(Vec3::new(1.0,1.0,1.0), angle),
+                ..Default::default()
+            },
             ..Default::default()
         })
-        .with(
-            RigidBodyBuilder::new_static()
-                .translation(x, y)
-                .rotation(angle),
+        .insert_bundle(
+            RigidBodyBundle {
+                body_type: RigidBodyType::Static,
+                position: (Vec2::new(x, y), angle).into(),
+                ..Default::default()
+            }
         )
-        .with(ColliderBuilder::segment(local_p1, local_p2).friction(0.0));
+        .insert_bundle(
+            ColliderBundle {
+                shape: SharedShape::new(Capsule::new(local_p1, local_p2, 0.0)),
+                material: ColliderMaterial {
+                    friction: 0.0,
+                    ..Default::default()
+                },
+                ..Default::default()
+            }
+        );
 }

@@ -1,10 +1,9 @@
 use crate::screen_to_world::screen_to_world;
 
 use bevy::prelude::*;
-use bevy_rapier2d::rapier::{dynamics::RigidBodyBuilder, geometry::ColliderBuilder};
+use bevy_rapier2d::prelude::*;
 
 pub struct SledSpawnerState {
-    cursor_event_reader: EventReader<CursorMoved>,
     camera_entity: Entity,
     last_cursor_pos: Option<Vec2>,
 }
@@ -12,7 +11,6 @@ pub struct SledSpawnerState {
 impl SledSpawnerState {
     pub fn new(camera_entity: Entity) -> Self {
         SledSpawnerState {
-            cursor_event_reader: Default::default(),
             camera_entity,
             last_cursor_pos: None,
         }
@@ -23,25 +21,24 @@ impl SledSpawnerState {
 pub struct SledMaterial(pub Handle<ColorMaterial>);
 
 pub fn sled_spawner_system(
-    mut commands: Commands,
+    commands: Commands,
     mut state: ResMut<SledSpawnerState>,
-    cursor_moved_events: Res<Events<CursorMoved>>,
+    mut cursor_event_reader: EventReader<CursorMoved>,
     sled_material: Res<SledMaterial>,
     keyboard_input: Res<Input<KeyCode>>,
     windows: Res<Windows>,
     transforms: Query<&Transform>,
 ) {
-    let camera_transform = transforms.get::<Transform>(state.camera_entity).unwrap();
+    let camera_transform = transforms.get(state.camera_entity).unwrap();
 
-    state.last_cursor_pos = state
-        .cursor_event_reader
-        .latest(&cursor_moved_events)
+    state.last_cursor_pos = cursor_event_reader
+        .iter().nth(0)
         .map(|event| screen_to_world(event.position, &camera_transform, &windows))
         .or(state.last_cursor_pos);
     if let Some(cursor_pos) = state.last_cursor_pos {
         if keyboard_input.just_pressed(KeyCode::Space) {
             let sled_size = Vec2::new(50.0, 10.0);
-            spawn_sled(cursor_pos, sled_size, sled_material.0, &mut commands);
+            spawn_sled(cursor_pos, sled_size, sled_material.0.clone(), commands);
         }
     }
 }
@@ -50,17 +47,33 @@ fn spawn_sled(
     position: Vec2,
     size: Vec2,
     material: Handle<ColorMaterial>,
-    commands: &mut Commands,
+    mut commands: Commands,
 ) {
     commands
-        .spawn(SpriteComponents {
+        .spawn_bundle(SpriteBundle {
             material,
-            sprite: Sprite { size },
+            sprite: Sprite {
+                size,
+                flip_x: false,
+                flip_y: false,
+                resize_mode: SpriteResizeMode::Manual,
+            },
             // HACK: this should be unnecessary, but bevy_rapier has an awkward system ordering that
             // means we have at least one frame before transforms get synchronized
-            translation: Translation(position.extend(0.0)),
+            transform: Transform {
+                rotation: Quat::IDENTITY,
+                scale: Vec3::new(1.0, 1.0, 1.0),
+                translation: position.extend(0.0),
+            },
             ..Default::default()
         })
-        .with(RigidBodyBuilder::new_dynamic().translation(position.x(), position.y()))
-        .with(ColliderBuilder::capsule_x(size.x() / 2.0, size.y() / 2.0).friction(0.0));
+        .insert_bundle(RigidBodyBundle {
+            position: position.into(),
+            ..Default::default()
+        })
+        .insert_bundle(ColliderBundle {
+            shape: SharedShape::new(Capsule::new_x(size.x / 2.0, size.y / 2.0)),
+            material: ColliderMaterial::new(0.0, 0.0),
+            ..Default::default()
+        });
 }
